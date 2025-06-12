@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vods ATL</title>
+    <meta name="description" content="VODS ATL - Visuals On Demand. Sound meets motion.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <style>
+      #splash-screen {
+        background-color: #000;
+        color: #fff;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Courier New', monospace;
+        font-size: 1.5rem;
+        z-index: 9999;
+        transition: opacity 0.5s ease;
+      }
+      #splash-status {
+        margin-top: 0.5rem;
+        font-size: 1rem;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="splash-screen">
+      <div>VODS ATL</div>
+      <div id="splash-status">Booting...</div>
+    </div>
+
+    <script src="main.dart.js" type="application/javascript"></script>
+
+    <script>
+      let audioCtx;
+      let analyser;
+      let freqArray = new Uint8Array(256);
+
+      window.startAudio = async function () {
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const source = audioCtx.createMediaStreamSource(stream);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 512;
+          source.connect(analyser);
+          return Promise.resolve();
+        } catch (e) {
+          console.error("Audio start failed:", e);
+          return Promise.reject(e);
+        }
+      };
+
+      window.getFreqData = function () {
+        if (analyser) {
+          analyser.getByteFrequencyData(freqArray);
+        }
+        return freqArray;
+      };
+    </script>
+
+    <script>
+      window.addEventListener('load', function () {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+          splash.style.opacity = '0';
+          setTimeout(() => splash.remove(), 600);
+        }
+      });
+    </script>
+  </body>
+</html>
